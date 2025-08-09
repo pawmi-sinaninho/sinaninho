@@ -46,9 +46,7 @@ const DataCtx = createContext<DataValue>({
 /** T-typisierter Fetch, damit kein any benötigt wird */
 async function fetchJson<T>(input: RequestInfo | URL): Promise<T> {
   const res = await fetch(input);
-  if (!res.ok) {
-    throw new Error(`HTTP ${res.status} for ${typeof input === 'string' ? input : res.url}`);
-  }
+  if (!res.ok) throw new Error(`HTTP ${res.status} for ${input.toString()}`);
   return (await res.json()) as T;
 }
 

@@ -1,3 +1,4 @@
+// src/components/CompanionsGrid.tsx
 'use client';
 
 import { useMemo, useState } from 'react';
@@ -30,6 +31,7 @@ export default function CompanionsGrid() {
 
   const roles = Object.keys(ROLE_LABEL) as Role[];
 
+  // Filter companions by search text and role
   const filtered = useMemo(() => {
     const s = query.trim().toLowerCase();
     return companions.filter((c) => {
@@ -54,7 +56,7 @@ export default function CompanionsGrid() {
 
   return (
     <>
-      {/* Filterzeile */}
+      {/* Suche + Rollenfilter */}
       <div className="flex gap-2 items-center">
         <input
           className="flex-1 rounded-xl border bg-white/90 p-3 outline-none focus:ring-2 focus:ring-primary/60 text-neutral-900"
@@ -81,22 +83,25 @@ export default function CompanionsGrid() {
         </select>
       </div>
 
-      {/* Grid */}
+      {/* Grid mit Companions */}
       <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mt-4">
         {filtered.map((c) => {
           const idStr = String(c.id);
+          // Spell IDs aus Mapping oder Compagnon-Objekt ermitteln
           const byStr = (mapping as Record<string, number[]>)[idStr];
           const byNum = (mapping as unknown as Record<number, number[]>)[c.id];
           const spellIds: number[] = byStr ?? byNum ?? c.spells ?? [];
 
-          const mainRole: Role = (COMP_ROLES[c.id]?.[0] ?? 'support') as Role;
+          // Hauptrolle ermitteln (erste Rolle oder 'support')
+          const mainRole: Role =
+            (COMP_ROLES[c.id]?.[0] ?? 'support') as Role;
 
           return (
             <li
               key={c.id}
               className={`rounded-3xl p-4 shadow-xl bg-gradient-to-br ${roleGradient[mainRole]} text-white transition-transform hover:scale-[1.02]`}
             >
-              {/* Header */}
+              {/* Kopfzeile mit Bild und Name */}
               <div className="flex items-center gap-4">
                 <Image
                   src={withFallback(c.img, c.id)}
@@ -125,7 +130,7 @@ export default function CompanionsGrid() {
                 </p>
               )}
 
-              {/* Spells */}
+              {/* Zauber-Liste */}
               <div className="mt-3">
                 <div className="font-semibold mb-1">
                   {lang === 'fr' ? 'Sorts' : 'Spells'}
@@ -166,7 +171,10 @@ export default function CompanionsGrid() {
 
       {/* Spell-Modal */}
       {openSpell && (
-        <SpellDetails spellId={openSpell} onClose={() => setOpenSpell(null)} />
+        <SpellDetails
+          spellId={openSpell}
+          onClose={() => setOpenSpell(null)}
+        />
       )}
     </>
   );
