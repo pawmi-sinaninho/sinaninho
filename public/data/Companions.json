@@ -1,0 +1,210 @@
+{
+  "1": {
+    "name_fr": "Lumino",
+    "name_en": "Lumino"
+  },
+  "2": {
+    "name_fr": "Skale",
+    "name_en": "Skale"
+  },
+  "6": {
+    "name_fr": "Masse",
+    "name_en": "Trank"
+  },
+  "7": {
+    "name_fr": "Scoreur",
+    "name_en": "Beelzebug"
+  },
+  "8": {
+    "name_fr": "Korbax",
+    "name_en": "Krobax"
+  },
+  "9": {
+    "name_fr": "Ombre",
+    "name_en": "Shadow"
+  },
+  "11": {
+    "name_fr": "Chevalier d'Astrub",
+    "name_en": "Astrub Knight"
+  },
+  "12": {
+    "name_fr": "Krosmoglob",
+    "name_en": "Krosmoglob"
+  },
+  "14": {
+    "name_fr": "Malle O'Kranh",
+    "name_en": "Kamus Rex"
+  },
+  "15": {
+    "name_fr": "Éclaireur spectral",
+    "name_en": "Spectral Scout"
+  },
+  "16": {
+    "name_fr": "Toxine",
+    "name_en": "Toxine"
+  },
+  "17": {
+    "name_fr": "Archiduk",
+    "name_en": "Archiduk"
+  },
+  "55": {
+    "name_fr": "Lumino Star",
+    "name_en": "Lumino Star"
+  },
+  "56": {
+    "name_fr": "Ténèbre",
+    "name_en": "Darkness"
+  },
+  "57": {
+    "name_fr": "Nuage",
+    "name_en": "Cloud"
+  },
+  "58": {
+    "name_fr": "Goutte",
+    "name_en": "Drop"
+  },
+  "59": {
+    "name_fr": "Feuille",
+    "name_en": "Leaf"
+  },
+  "60": {
+    "name_fr": "Flamme",
+    "name_en": "Flame"
+  },
+  "61": {
+    "name_fr": "Riktus fine-lame",
+    "name_en": "Riktus Swordfighter"
+  },
+  "62": {
+    "name_fr": "Riktus archer",
+    "name_en": "Riktus Archer"
+  },
+  "63": {
+    "name_fr": "Riktus baroudeur",
+    "name_en": "Seasoned Riktus"
+  },
+  "64": {
+    "name_fr": "Riktus ensorceleuse",
+    "name_en": "Riktus Enchantress"
+  },
+  "65": {
+    "name_fr": "Grüt",
+    "name_en": "Grute"
+  },
+  "66": {
+    "name_fr": "Kocksis",
+    "name_en": "Koksiks"
+  },
+  "67": {
+    "name_fr": "Gobeuf",
+    "name_en": "Goboff"
+  },
+  "68": {
+    "name_fr": "Laikteur",
+    "name_en": "Lektor"
+  },
+  "69": {
+    "name_fr": "Rekto Topi",
+    "name_en": "Stroy Zemol"
+  },
+  "70": {
+    "name_fr": "Grizou",
+    "name_en": "Fyred Ampe"
+  },
+  "71": {
+    "name_fr": "Kloug",
+    "name_en": "Kloug"
+  },
+  "72": {
+    "name_fr": "Hulkrap",
+    "name_en": "Hulkrap"
+  },
+  "73": {
+    "name_fr": "Klüme",
+    "name_en": "Klume"
+  },
+  "74": {
+    "name_fr": "Manitou Zoth",
+    "name_en": "Manitou Zoth"
+  },
+  "75": {
+    "name_fr": "Rapine",
+    "name_en": "Plunder"
+  },
+  "76": {
+    "name_fr": "Phong Huss",
+    "name_en": "Phong Huss"
+  },
+  "77": {
+    "name_fr": "Hectaupe",
+    "name_en": "Ektope"
+  },
+  "78": {
+    "name_fr": "Grouillot",
+    "name_en": "Grouillot"
+  },
+  "79": {
+    "name_fr": "Karotz",
+    "name_en": "Karotz"
+  },
+  "80": {
+    "name_fr": "Rapiat",
+    "name_en": "Rapiat"
+  },
+  "81": {
+    "name_fr": "Kubitus",
+    "name_en": "Kubitus"
+  },
+  "82": {
+    "name_fr": "Piggy Paupe",
+    "name_en": "Piggy Paupe"
+  },
+  "83": {
+    "name_fr": "Ougicle",
+    "name_en": "Ougicle"
+  },
+  "84": {
+    "name_fr": "Inferno",
+    "name_en": "Inferno"
+  },
+  "85": {
+    "name_fr": "Styx",
+    "name_en": "Styx"
+  },
+  "86": {
+    "name_fr": "Mandrin",
+    "name_en": "Mandrin"
+  },
+  "87": {
+    "name_fr": "Will Killson",
+    "name_en": "Will Killson"
+  },
+  "88": {
+    "name_fr": "Traçon",
+    "name_en": "Tracon"
+  },
+  "89": {
+    "name_fr": "Mirh",
+    "name_en": "Mirh"
+  },
+  "90": {
+    "name_fr": "Logram",
+    "name_en": "Logram"
+  },
+  "91": {
+    "name_fr": "Kalkanéus",
+    "name_en": "Kalkaneus"
+  },
+  "92": {
+    "name_fr": "Hichète",
+    "name_en": "Hichete"
+  },
+  "93": {
+    "name_fr": "Haku",
+    "name_en": "Haku"
+  },
+  "94": {
+    "name_fr": "Turyé",
+    "name_en": "Rint"
+  }
+}
