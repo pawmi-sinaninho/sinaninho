@@ -1,25 +1,59 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
-import type { Companion, SpellDict, CompanionSpellMap } from '@/types/dofus';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 
-type DataState = {
-  loading: boolean;
-  companions: Companion[];
-  spells: SpellDict;
-  mapping: CompanionSpellMap;
-  error?: string;
+/** Hilfstypen */
+type Localized = { fr?: string; en?: string };
+
+export type Companion = {
+  id: number;
+  name?: Localized;
+  description?: Localized;
+  spells?: number[];
+  img?: string;
 };
 
-const DataContext = createContext<DataState>({
+export type Spell = {
+  id: number;
+  name_fr?: string;
+  name_en?: string;
+  // weitere Felder sind erlaubt, aber uns egal
+  [k: string]: unknown;
+};
+
+/** Mapping: Companion-ID -> Spell-IDs */
+export type Mapping = Record<string, number[]>;
+
+/** Response-Form der DofusDB-Listenendpunkte */
+type ApiList<T> = { total: number; limit: number; skip: number; data: T[] };
+
+/** Wert im Context */
+type DataValue = {
+  loading: boolean;
+  error?: string;
+  companions: Companion[];
+  spells: Record<number, Spell>;
+  mapping: Mapping;
+};
+
+const DataCtx = createContext<DataValue>({
   loading: true,
   companions: [],
   spells: {},
   mapping: {},
 });
 
+/** T-typisierter Fetch, damit kein any benötigt wird */
+async function fetchJson<T>(input: RequestInfo | URL): Promise<T> {
+  const res = await fetch(input);
+  if (!res.ok) {
+    throw new Error(`HTTP ${res.status} for ${typeof input === 'string' ? input : res.url}`);
+  }
+  return (await res.json()) as T;
+}
+
 export function DataProvider({ children }: { children: React.ReactNode }) {
-  const [state, setState] = useState<DataState>({
+  const [state, setState] = useState<DataValue>({
     loading: true,
     companions: [],
     spells: {},
@@ -29,50 +63,39 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     let cancelled = false;
 
-    async function load() {
+    (async () => {
       try {
-        // 1) Live-API (alle Compagnons)
-        const companionsReq = fetch('https://api.dofusdb.fr/companions?$limit=100', {
-          // wichtig: no-cache, sonst bekommst du manchmal leere Antworten
-          cache: 'no-store',
-        }).then(r => r.json());
-
-        // 2) Lokale JSONs (keine CORS-Probleme)
-        const spellsReq  = fetch('/data/Spells.json').then(r => r.json());
-        const mapReq     = fetch('/data/companion_spells_mapping.json').then(r => r.json());
-
-        const [companionsRes, spellsRaw, mappingRaw] = await Promise.all([
-          companionsReq, spellsReq, mapReq
+        const [mapping, spellsMap, compsResp] = await Promise.all([
+          fetchJson<Mapping>('/data/companion_spells_mapping.json'),
+          fetchJson<Record<number, Spell>>('/data/Spells.json'),
+          fetchJson<ApiList<Companion>>('https://api.dofusdb.fr/companions?$limit=60'),
         ]);
 
-        const companions: Companion[] = Array.isArray(companionsRes?.data) ? companionsRes.data : [];
+        if (cancelled) return;
 
-        // Spells.json hat string-Keys → in Number-Keys konvertieren
-        const spells: SpellDict = Object.fromEntries(
-          Object.entries(spellsRaw || {}).map(([k, v]) => [Number(k), v as any])
-        );
-
-        // Mapping-Keys sind Strings, passt für uns – wir greifen via String(comp.id) zu
-        const mapping: CompanionSpellMap = mappingRaw || {};
-
-        if (!cancelled) {
-          setState({ loading: false, companions, spells, mapping });
-        }
-      } catch (e: any) {
-        if (!cancelled) {
-          setState(s => ({ ...s, loading: false, error: e?.message || 'Load error' }));
-        }
+        setState({
+          loading: false,
+          error: undefined,
+          companions: compsResp.data,
+          spells: spellsMap,
+          mapping,
+        });
+      } catch (err) {
+        if (cancelled) return;
+        setState((prev) => ({
+          ...prev,
+          loading: false,
+          error: err instanceof Error ? err.message : String(err),
+        }));
       }
-    }
+    })();
 
-    load();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
-  const value = useMemo(() => state, [state]);
-  return <DataContext.Provider value={value}>{children}</DataContext.Provider>;
+  return <DataCtx.Provider value={state}>{children}</DataCtx.Provider>;
 }
 
-export function useData() {
-  return useContext(DataContext);
-}
+export const useData = () => useContext(DataCtx);
