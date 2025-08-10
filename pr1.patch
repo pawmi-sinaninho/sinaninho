@@ -1,0 +1,428 @@
+diff --git a/package.json b/package.json
+index 1111111..2222222 100644
+--- a/package.json
++++ b/package.json
+@@ -3,6 +3,19 @@
+   "private": true,
+   "type": "module",
+   "scripts": {
++    "validate:data": "tsx scripts/validate-data.ts",
++    "test": "vitest run",
++    "test:watch": "vitest"
+   },
++  "dependencies": {
++    "zod": "^3.23.8",
++    "tsx": "^4.7.2"
++  },
++  "devDependencies": {
++    "vitest": "^1.6.0"
++  }
+ }
+ 
+diff --git a/src/types/sidekick.ts b/src/types/sidekick.ts
+new file mode 100644
+index 0000000..a1b2c3d
+--- /dev/null
++++ b/src/types/sidekick.ts
+@@ -0,0 +1,141 @@
++// Strikt typisiertes Datenmodell fuer DOFUS Sidekicks
++export const ROLES = [
++  "healer",
++  "shielder",
++  "tank",
++  "ap_removal",
++  "mp_removal",
++  "damager",
++  "positioning",
++  "placement",
++  "debuff",
++  "buff",
++  "summons",
++] as const;
++export type Role = (typeof ROLES)[number];
++
++export const TAGS = [
++  // Healing / Shield
++  "heal_single",
++  "heal_aoe",
++  "shield_single",
++  "shield_aoe",
++  // Control / Position
++  "push",
++  "pull",
++  "swap",
++  "map_control",
++  "stabilize",
++  // AP/MP
++  "ap_minus",
++  "mp_minus",
++  // Damage
++  "damage_single",
++  "damage_aoe",
++  "poison",
++  // Buff/Debuff
++  "range_boost",
++  "erosion",
++  "buff_power",
++  "debuff_power",
++  // Mobility
++  "teleport",
++  "dash",
++  "lock",
++  "unlock",
++] as const;
++export type Tag = (typeof TAGS)[number];
++
++export const ELEMENTS = ["neutral", "earth", "fire", "water", "air"] as const;
++export type Element = (typeof ELEMENTS)[number];
++
++export type Mobility = {
++  teleport: boolean;
++  dash: boolean;
++  swap: boolean;
++};
++
++export type Survivability = {
++  hp: "low" | "medium" | "high";
++  resist_synergy: boolean;
++};
++
++export type Spell = {
++  name: string;
++  ap: number;
++  range: string; // z. B. "1-4 mod"
++  cd: number; // cooldown in turns
++  effects: Tag[];
++  notes?: string;
++};
++
++export type RoleStrength = Partial<Record<Role, number>>; // 0..3 empfohlen
++
++export type Sidekick = {
++  id: string; // slug
++  name: string;
++  overview: string;
++  roles: Role[];
++  role_strength: RoleStrength;
++  tags: Tag[];
++  elements: Element[];
++  level_range: [number, number];
++  mobility: Mobility;
++  survivability: Survivability;
++  spells: Spell[];
++  synergies?: string[];
++  anti_synergies?: string[];
++  sources?: string[];
++  last_verified: string; // ISO date
++};
++
+diff --git a/src/data/sidekicks.ts b/src/data/sidekicks.ts
+new file mode 100644
+index 0000000..d4e5f6a
+--- /dev/null
++++ b/src/data/sidekicks.ts
+@@ -0,0 +1,182 @@
++import { Sidekick } from "../types/sidekick";
++
++// Erste 3 Beispiel-Sidekicks (Inhalte sind bewusst knapp gehalten; Details folgen in spaeteren PRs)
++export const SIDEKICKS: Sidekick[] = [
++  {
++    id: "lumino",
++    name: "Lumino",
++    overview:
++      "Klassischer Healer/Support-Sidekick mit Single- und situativem AoE-Heal. Bietet soliden Sustain fuer Teams ohne Eniripsa.",
++    roles: ["healer", "buff"],
++    role_strength: { healer: 3, buff: 1, shielder: 1, positioning: 1 },
++    tags: ["heal_single", "heal_aoe", "range_boost"],
++    elements: ["neutral"],
++    level_range: [1, 200],
++    mobility: { teleport: false, dash: false, swap: false },
++    survivability: { hp: "medium", resist_synergy: true },
++    spells: [
++      { name: "Vital Spark", ap: 3, range: "1-4 mod", cd: 0, effects: ["heal_single"] },
++      { name: "Area Mender", ap: 4, range: "2-5 mod", cd: 2, effects: ["heal_aoe"] },
++    ],
++    synergies: ["profitert von Tanks und Positionern"],
++    anti_synergies: ["fokusierter Burst schaltet ihn schnell aus"],
++    sources: ["<add-wiki-url>", "<add-patchnotes-url>"],
++    last_verified: "2025-08-10",
++  },
++  {
++    id: "krobax",
++    name: "Krobax",
++    overview:
++      "Positioning/Map-Control-Sidekick. Kann ziehen, schieben und die Karte zu Gunsten des Teams ordnen.",
++    roles: ["positioning", "placement", "debuff"],
++    role_strength: { positioning: 3, placement: 2, debuff: 1 },
++    tags: ["push", "pull", "swap", "map_control", "stabilize"],
++    elements: ["air"],
++    level_range: [1, 200],
++    mobility: { teleport: false, dash: false, swap: true },
++    survivability: { hp: "medium", resist_synergy: false },
++    spells: [
++      { name: "Gale Pull", ap: 3, range: "1-6 mod", cd: 0, effects: ["pull"] },
++      { name: "Wind Push", ap: 3, range: "1-6 mod", cd: 0, effects: ["push"] },
++      { name: "Swap Draft", ap: 4, range: "1-4 mod", cd: 2, effects: ["swap"] },
++    ],
++    synergies: ["kitet Nahkampf-Gegner, eroeffnet Linien fuer Fernkaempfer"],
++    anti_synergies: ["stabile/bodenhafte Gegner"],
++    sources: ["<add-wiki-url>"],
++    last_verified: "2025-08-10",
++  },
++  {
++    id: "shadow",
++    name: "Shadow",
++    overview:
++      "Burst-Damager mit Single-Target-Fokus. Liefert konstanten Druck und profitiert von Platzierung durch andere.",
++    roles: ["damager", "debuff"],
++    role_strength: { damager: 3, debuff: 1, positioning: 1 },
++    tags: ["damage_single", "damage_aoe", "erosion"],
++    elements: ["neutral"],
++    level_range: [1, 200],
++    mobility: { teleport: false, dash: true, swap: false },
++    survivability: { hp: "low", resist_synergy: false },
++    spells: [
++      { name: "Shadow Strike", ap: 3, range: "1-3 mod", cd: 0, effects: ["damage_single"] },
++      { name: "Night Sweep", ap: 4, range: "2-4 mod", cd: 2, effects: ["damage_aoe", "erosion"] },
++    ],
++    synergies: ["arbeitet gut mit AP/MP-Entzug und Positioning zusammen"],
++    anti_synergies: ["hohe Resistenzen, healschwere Teams"],
++    sources: ["<add-wiki-url>"],
++    last_verified: "2025-08-10",
++  },
++];
++
++export default SIDEKICKS;
++
+diff --git a/src/lib/validation.ts b/src/lib/validation.ts
+new file mode 100644
+index 0000000..0abc123
+--- /dev/null
++++ b/src/lib/validation.ts
+@@ -0,0 +1,127 @@
++import { z } from "zod";
++import { ELEMENTS, ROLES, TAGS, type Sidekick } from "../types/sidekick";
++
++const RoleEnum = z.enum(ROLES as [string, ...string[]]);
++const TagEnum = z.enum(TAGS as [string, ...string[]]);
++const ElementEnum = z.enum(ELEMENTS as [string, ...string[]]);
++
++const SpellSchema = z.object({
++  name: z.string().min(1),
++  ap: z.number().int().min(0).max(12),
++  range: z.string().min(1),
++  cd: z.number().int().min(0).max(10),
++  effects: z.array(TagEnum).min(1),
++  notes: z.string().optional(),
++});
++
++// role_strength: keys aus ROLES, werte 0..3 (optional, default 0)
++const RoleStrengthSchema = z
++  .record(RoleEnum, z.number().int().min(0).max(3))
++  .optional()
++  .default({});
++
++export const SidekickSchema = z.object({
++  id: z
++    .string()
++    .regex(/^[a-z0-9-]+$/, "id muss ein slug sein (a-z, 0-9, -)"),
++  name: z.string().min(1),
++  overview: z.string().min(5),
++  roles: z.array(RoleEnum).min(1),
++  role_strength: RoleStrengthSchema,
++  tags: z.array(TagEnum).min(1),
++  elements: z.array(ElementEnum).min(1),
++  level_range: z.tuple([z.number().int().min(1), z.number().int().max(200)]),
++  mobility: z.object({
++    teleport: z.boolean(),
++    dash: z.boolean(),
++    swap: z.boolean(),
++  }),
++  survivability: z.object({
++    hp: z.enum(["low", "medium", "high"]),
++    resist_synergy: z.boolean(),
++  }),
++  spells: z.array(SpellSchema).min(1),
++  synergies: z.array(z.string()).optional(),
++  anti_synergies: z.array(z.string()).optional(),
++  sources: z.array(z.string().url().or(z.literal("<add-wiki-url>"))).optional(),
++  last_verified: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
++});
++
++export const SidekickListSchema = z.array(SidekickSchema).superRefine((list, ctx) => {
++  // Eindeutige IDs
++  const ids = new Set<string>();
++  for (const s of list) {
++    if (ids.has(s.id)) {
++      ctx.addIssue({
++        code: z.ZodIssueCode.custom,
++        message: `Duplicate id: ${s.id}`,
++      });
++    }
++    ids.add(s.id);
++  }
++});
++
++export type SidekickParsed = z.infer<typeof SidekickSchema>;
++
++export function validateSidekicks(data: unknown): SidekickParsed[] {
++  const res = SidekickListSchema.safeParse(data);
++  if (!res.success) {
++    const formatted = res.error.issues
++      .map((i) => `${i.path.join(".")}: ${i.message}`)
++      .join("\n");
++    throw new Error("Sidekick data validation failed:\n" + formatted);
++  }
++  return res.data;
++}
++
++// Kleines Helper fuer defensive runtime checks
++export function assertSidekicksShape(value: unknown): asserts value is Sidekick[] {
++  validateSidekicks(value);
++}
++
+diff --git a/src/lib/ranking.ts b/src/lib/ranking.ts
+new file mode 100644
+index 0000000..1def456
+--- /dev/null
++++ b/src/lib/ranking.ts
+@@ -0,0 +1,93 @@
++import type { Sidekick, Role, Tag } from "../types/sidekick";
++
++export type FilterInput = {
++  roles?: Role[];     // gewuenschte hauptrollen
++  tags?: Tag[];       // feinkoernige faehigkeiten
++};
++
++const ROLE_WEIGHT = 10; // starke steuerung ueber rollengewicht
++const TAG_WEIGHT = 1;   // feintuning ueber tags
++
++export function computeScore(s: Sidekick, filter: FilterInput): number {
++  let score = 0;
++  if (filter.roles && filter.roles.length) {
++    for (const r of filter.roles) {
++      const val = s.role_strength?.[r] ?? 0;
++      // 0..3 -> 0..30 punkte
++      score += val * ROLE_WEIGHT;
++    }
++  }
++  if (filter.tags && filter.tags.length) {
++    for (const t of filter.tags) {
++      if (s.tags.includes(t)) score += TAG_WEIGHT;
++      // Bonus wenn Spell-Effekt exakt passt
++      if (s.spells.some(sp => sp.effects.includes(t))) score += TAG_WEIGHT;
++    }
++  }
++  // kleiner Bonus fuer Ueberschneidung von Rollen und Tags gleichzeitig
++  if (score > 0 && filter.roles?.length && filter.tags?.length) {
++    score += Math.min(5, Math.floor(score * 0.05));
++  }
++  return score;
++}
++
++export function rankSidekicks(list: Sidekick[], filter: FilterInput): Sidekick[] {
++  if ((!filter.roles || filter.roles.length === 0) && (!filter.tags || filter.tags.length === 0)) {
++    return [...list]; // keine filter -> natürliche reihenfolge
++  }
++  return [...list].sort((a, b) => computeScore(b, filter) - computeScore(a, filter));
++}
++
+diff --git a/scripts/validate-data.ts b/scripts/validate-data.ts
+new file mode 100644
+index 0000000..2a2b3c4
+--- /dev/null
++++ b/scripts/validate-data.ts
+@@ -0,0 +1,55 @@
++#!/usr/bin/env tsx
++/**
++ * Validiert die Sidekick-Daten gegen das Schema.
++ * Nutzung: npm run validate:data
++ */
++import { validateSidekicks } from "../src/lib/validation";
++import SIDEKICKS from "../src/data/sidekicks";
++
++function main() {
++  try {
++    const parsed = validateSidekicks(SIDEKICKS);
++    // einfache inhaltschecks
++    if (parsed.length < 1) throw new Error("Keine Sidekicks gefunden");
++    const withBadIds = parsed.filter(s => !/^[a-z0-9-]+$/.test(s.id));
++    if (withBadIds.length) {
++      throw new Error("Ungültige IDs: " + withBadIds.map(s => s.id).join(", "));
++    }
++    console.log(`✅ Validation OK: ${parsed.length} sidekicks`);
++    process.exit(0);
++  } catch (err) {
++    console.error("❌ Validation failed:\n");
++    if (err instanceof Error) console.error(err.message);
++    else console.error(err);
++    process.exit(1);
++  }
++}
++
++main();
++
+diff --git a/tests/validation.test.ts b/tests/validation.test.ts
+new file mode 100644
+index 0000000..5a6b7c8
+--- /dev/null
++++ b/tests/validation.test.ts
+@@ -0,0 +1,61 @@
++import { describe, it, expect } from "vitest";
++import SIDEKICKS from "../src/data/sidekicks";
++import { validateSidekicks } from "../src/lib/validation";
++import { computeScore, rankSidekicks } from "../src/lib/ranking";
++
++describe("data validation", () => {
++  it("validates sidekicks array", () => {
++    const parsed = validateSidekicks(SIDEKICKS);
++    expect(parsed.length).toBeGreaterThan(0);
++    // check minimal shape
++    for (const s of parsed) {
++      expect(s.id).toMatch(/^[a-z0-9-]+$/);
++      expect(s.roles.length).toBeGreaterThan(0);
++      expect(s.spells.length).toBeGreaterThan(0);
++    }
++  });
++});
++
++describe("ranking", () => {
++  it("gives higher score to better role match", () => {
++    const parsed = validateSidekicks(SIDEKICKS);
++    const f = { roles: ["healer"] as const, tags: ["heal_single"] as const };
++    const scores = parsed.map(s => ({ id: s.id, score: computeScore(s, f) }));
++    const lumino = scores.find(x => x.id === "lumino")!;
++    const shadow = scores.find(x => x.id === "shadow")!;
++    expect(lumino.score).toBeGreaterThan(shadow.score);
++  });
++
++  it("sorts list by score desc", () => {
++    const parsed = validateSidekicks(SIDEKICKS);
++    const ranked = rankSidekicks(parsed, { roles: ["positioning"] as const });
++    // krobax sollte vorn mitspielen
++    expect(ranked[0].id === "krobax" || ranked[1].id === "krobax").toBe(true);
++  });
++});
++
+diff --git a/vitest.config.ts b/vitest.config.ts
+new file mode 100644
+index 0000000..7c8d9e0
+--- /dev/null
++++ b/vitest.config.ts
+@@ -0,0 +1,18 @@
++import { defineConfig } from "vitest/config";
++
++export default defineConfig({
++  test: {
++    globals: true,
++    environment: "node",
++    include: ["tests/**/*.test.ts"],
++    coverage: {
++      reporter: ["text", "html"],
++    },
++  },
++  esbuild: {
++    target: "es2022",
++  },
++});
++
